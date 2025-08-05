@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build && next export",  // 关键修改：新增 next export 生成静态文件到 out 目录
     "start": "next start",
     "lint": "next lint",
     "tauri": "tauri"
