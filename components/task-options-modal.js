@@ -14,6 +14,7 @@ import {
   ArrowRight,
   List,
   ChevronRight,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,7 @@ export function TaskOptionsModal({
   const [selectedTag, setSelectedTag] = useState(task.tag || "no-tag");
   const [showAddTag, setShowAddTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
+  const [taskDate, setTaskDate] = useState(task.createdAt || new Date());
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
   const [showSubtasks, setShowSubtasks] = useState(false);
 
@@ -76,13 +78,6 @@ export function TaskOptionsModal({
   const handleDelete = () => {
     onDeleteTask(task.id);
     onClose();
-  };
-
-  const handleSaveEdit = () => {
-    if (editTitle.trim()) {
-      onUpdateTask(task.id, { title: editTitle.trim() });
-      setIsEditing(false);
-    }
   };
 
   const handleTagChange = (newTag) => {
@@ -113,6 +108,53 @@ export function TaskOptionsModal({
 
   const isDifferentDay =
     task.createdAt.toDateString() !== currentActualDate.toDateString();
+
+  console.log(task.createdAt.toDateString(), currentActualDate.toDateString());
+
+  const formatDateForInput = (date) => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const parseDateFromInput = (dateString) => {
+    const date = new Date(dateString + "T00:00:00");
+    return isNaN(date.getTime()) ? new Date() : date;
+  };
+
+  const getQuickDateOptions = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+
+    return [
+      { label: "Today", date: today },
+      { label: "Tomorrow", date: tomorrow },
+      { label: "Next Week", date: nextWeek },
+    ];
+  };
+
+  const handleSaveEdit = () => {
+    if (editTitle.trim()) {
+      onUpdateTask(task.id, {
+        title: editTitle.trim(),
+        createdAt: taskDate,
+      });
+      setIsEditing(false);
+    }
+  };
+
+  const handleDateChange = (newDate) => {
+    setTaskDate(newDate);
+
+    if (!isEditing) {
+      onUpdateTask(task.id, { createdAt: newDate });
+    }
+  };
 
   // Animation variants
   const backdropVariants = {
@@ -413,6 +455,40 @@ export function TaskOptionsModal({
                 </div>
               </motion.div>
             )}
+
+            <motion.div variants={itemVariants} className="space-y-3">
+              <label className="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Reschedule
+              </label>
+
+              <div className="flex gap-2 flex-wrap">
+                {getQuickDateOptions().map((option) => (
+                  <motion.button
+                    key={option.label}
+                    onClick={() => handleDateChange(option.date)}
+                    className={`px-3 py-2 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${
+                      taskDate.toDateString() === option.date.toDateString()
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-gray-300 dark:border-gray-600 dark:text-gray-100"
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {option.label}
+                  </motion.button>
+                ))}
+              </div>
+
+              <input
+                type="date"
+                value={formatDateForInput(taskDate)}
+                onChange={(e) =>
+                  handleDateChange(parseDateFromInput(e.target.value))
+                }
+                className="w-full border-2 border-gray-300 focus:border-primary/70 font-extrabold dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl py-3 px-4"
+              />
+            </motion.div>
 
             {/* Subtasks Section - Only show for main tasks */}
             {!isSubtask && !task.isHabit && (

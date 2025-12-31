@@ -50,6 +50,7 @@ export function HabitTracker({
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
   const [currentHabitIndex, setCurrentHabitIndex] = useState(-1); // -1 for overview, 0+ for individual habits
   const [showNavigation, setShowNavigation] = useState(true);
+  const [viewDate, setViewDate] = useState(new Date());
 
   // Generate past 30 days (exactly 30 for 6x5 grid)
   const generatePastDays = () => {
@@ -64,21 +65,39 @@ export function HabitTracker({
 
   const pastDays = generatePastDays();
 
-  // Calculate daily habit completion counts
   const getDailyHabitCount = (date) => {
     return habits.reduce((count, habit) => {
       return count + (habit.completedDates.includes(date) ? 1 : 0);
     }, 0);
   };
 
-  // Get intensity color based on habit count (0-5+ habits)
-  const getOverviewIntensityColor = (count) => {
-    if (count === 0) return "bg-gray-100 dark:bg-gray-800";
-    if (count === 1) return "bg-green-200 dark:bg-green-900";
-    if (count === 2) return "bg-green-300 dark:bg-green-800";
-    if (count === 3) return "bg-green-400 dark:bg-green-700";
-    if (count === 4) return "bg-green-500 dark:bg-green-600";
-    return "bg-green-600 dark:bg-green-500"; // 5+ habits
+  const generateMonthDays = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const days = [];
+    for (let i = 1; i <= daysInMonth; i++) {
+      const d = new Date(year, month, i);
+
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+
+      days.push(`${yyyy}-${mm}-${dd}`);
+    }
+    return days;
+  };
+
+  const currentMonthDays = generateMonthDays(viewDate);
+  const monthName = viewDate.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+
+  const changeMonth = (offset) => {
+    setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() + offset)));
   };
 
   const addHabit = () => {
@@ -542,17 +561,31 @@ export function HabitTracker({
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                 >
-                  <Button
-                    onClick={() => {
-                      setShowAddForm(true);
-                      setShowNavigation(false);
-                    }}
-                    variant="outline"
-                    className="w-full border-2 border-gray-300 font-extrabold hover:border-primary/70 dark:border-gray-600 dark:hover:border-primary/80 dark:text-gray-100 rounded-xl py-4"
-                  >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Add New Habit
-                  </Button>
+                  {currentHabitIndex === -1 && (
+                    <Button
+                      onClick={() => {
+                        setShowAddForm(true);
+                        setShowNavigation(false);
+                      }}
+                      variant="outline"
+                      className="w-full border-2 border-gray-300 font-extrabold hover:border-primary/70 dark:border-gray-600 dark:hover:border-primary/80 dark:text-gray-100 rounded-xl py-4"
+                    >
+                      <Plus className="h-5 w-5 mr-2" />
+                      Add New Habit
+                    </Button>
+                  )}
+                  {currentHabitIndex !== -1 && (
+                    <Button
+                      onClick={() => {
+                        deleteHabit(currentHabit.id);
+                      }}
+                      variant="outline"
+                      className="w-full border-2 border-gray-300 font-extrabold hover:border-primary/70 dark:border-gray-600 dark:hover:border-primary/80 dark:text-gray-100 rounded-xl py-4"
+                    >
+                      <Trash2 className="mr-2" />
+                      Delete Habit
+                    </Button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -628,27 +661,23 @@ export function HabitTracker({
                 </div>
 
                 {/* Habit Dots Indicator */}
-                <div className="flex justify-center gap-1">
-                  <motion.button
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.8 }}
+                <div className="flex justify-center gap-1.5 mt-4">
+                  <button
                     onClick={() => setCurrentHabitIndex(-1)}
-                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                    className={`h-1.5 rounded-full transition-all ${
                       currentHabitIndex === -1
-                        ? "bg-primary shadow-lg"
-                        : "bg-primary/30"
+                        ? "w-6 bg-primary"
+                        : "w-1.5 bg-primary/20"
                     }`}
                   />
-                  {habits.map((_, index) => (
-                    <motion.button
-                      key={index}
-                      whileHover={{ scale: 1.2 }}
-                      whileTap={{ scale: 0.8 }}
-                      onClick={() => setCurrentHabitIndex(index)}
-                      className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                        index === currentHabitIndex
-                          ? "bg-primary shadow-lg"
-                          : "bg-primary/30"
+                  {habits.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentHabitIndex(i)}
+                      className={`h-1.5 rounded-full transition-all ${
+                        currentHabitIndex === i
+                          ? "w-6 bg-primary"
+                          : "w-1.5 bg-primary/20"
                       }`}
                     />
                   ))}
@@ -656,126 +685,93 @@ export function HabitTracker({
 
                 {/* Current View Display */}
                 <AnimatePresence mode="wait">
-                  {currentHabitIndex === -1 ? (
-                    // Overview of all habits
-                    <motion.div
-                      key="overview"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3 }}
-                      className="space-y-4"
-                    >
-                      <div className="flex flex-col gap-4 p-4 justify-center items-center bg-gray-50 dark:bg-gray-800/80 rounded-xl border-2 border-gray-200 dark:border-gray-700 h-[210px]">
-                        <div className="flex flex-row-reverse items-center w-full relative">
-                          <span className="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider absolute left-1/2 transform -translate-x-1/2">
-                            Past 30 days
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 font-extrabold h-5">
-                            {Math.round(
-                              (totalCompletions / (habits.length * 30)) * 100
-                            )}
-                            %
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-6 w-fit gap-2">
-                          {pastDays.map((date) => {
-                            const count = getDailyHabitCount(date);
-                            return (
-                              <motion.div
-                                key={date}
-                                whileHover={{ scale: 1.3 }}
-                                className={`w-4 h-4 rounded-md transition-all duration-200 cursor-pointer ${
-                                  count === 0
-                                    ? "bg-primary/10"
-                                    : count === 1
-                                    ? "bg-primary/30"
-                                    : count === 2
-                                    ? "bg-primary/50"
-                                    : count === 3
-                                    ? "bg-primary/70"
-                                    : count === 4
-                                    ? "bg-primary/85"
-                                    : "bg-primary"
-                                }`}
-                                title={`${new Date(
-                                  date
-                                ).toLocaleDateString()} - ${count} habit${
-                                  count !== 1 ? "s" : ""
-                                } completed`}
-                              />
-                            );
-                          })}
-                        </div>
-
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                          {totalCompletions} total habit completions this month
-                        </div>
-                      </div>
-                    </motion.div>
-                  ) : (
-                    // Individual habit view
-                    currentHabit && (
-                      <motion.div
-                        key={currentHabit.id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-4"
+                  <motion.div
+                    key={`${currentHabitIndex}-${viewDate.getMonth()}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex flex-col gap-4 p-5 bg-gray-50 dark:bg-gray-800/80 rounded-2xl border-2 border-gray-200 dark:border-gray-700 h-[240px]"
+                  >
+                    {/* Month Navigation Header */}
+                    <div className="flex items-center justify-between w-full mb-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => changeMonth(-1)}
+                        className="h-8 w-8 p-0 rounded-full hover:bg-primary/10"
                       >
-                        {/* GitHub-style grid */}
-                        <div className="flex flex-col gap-4 p-4 justify-center items-center bg-gray-50 dark:bg-gray-800/80 rounded-xl border-2 border-gray-200 dark:border-gray-700 h-[210px]">
-                          <div className="flex flex-row-reverse items-center w-full relative">
-                            <span className="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider absolute left-1/2 transform -translate-x-1/2">
-                              Past 30 days
-                            </span>
-                            <motion.div
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              className="h-5"
-                            >
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteHabit(currentHabit.id)}
-                                className="text-red-500 hover:text-red-700 text-xs hover:bg-transparent font-extrabold rounded-lg p-0 h-5"
-                              >
-                                <Trash2 className="h-5 w-5" />
-                              </Button>
-                            </motion.div>
-                          </div>
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
 
-                          <div className="grid grid-cols-6 w-fit gap-2 -mt-1">
-                            {pastDays.map((date) => (
-                              <motion.button
-                                key={date}
-                                whileHover={{ scale: 1.3 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() =>
-                                  toggleHabitDay(currentHabit.id, date)
-                                }
-                                className={`w-4 h-4 rounded-md transition-all duration-200 ${
-                                  getIntensity(currentHabit, date) === 0
-                                    ? "bg-primary/10 hover:bg-primary/20"
-                                    : "bg-primary hover:bg-primary/90"
-                                } hover:ring-2 hover:ring-primary/50`}
-                                title={`${currentHabit.name} - ${new Date(
-                                  date
-                                ).toLocaleDateString()}`}
-                              />
-                            ))}
-                          </div>
+                      <span className="text-sm font-extrabold text-primary uppercase tracking-widest">
+                        {monthName}
+                      </span>
 
-                          <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                            {currentHabit.completedDates.length} days completed
-                            this month
-                          </div>
-                        </div>
-                      </motion.div>
-                    )
-                  )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => changeMonth(1)}
+                        className="h-8 w-8 p-0 rounded-full hover:bg-primary/10"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* The Grid */}
+                    <div className="flex flex-wrap justify-center gap-2 max-w-[280px] mx-auto">
+                      {currentMonthDays.map((date) => {
+                        const count = getDailyHabitCount(date);
+                        const isIndividualCompleted =
+                          currentHabitIndex !== -1 &&
+                          habits[currentHabitIndex].completedDates.includes(
+                            date
+                          );
+
+                        return (
+                          <motion.button
+                            key={date}
+                            whileHover={{ scale: 1.3 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() =>
+                              currentHabitIndex !== -1 &&
+                              toggleHabitDay(habits[currentHabitIndex].id, date)
+                            }
+                            className={`w-5 h-5 rounded-md transition-all duration-200 border border-black/5 dark:border-white/5 ${
+                              currentHabitIndex === -1
+                                ? count === 0
+                                  ? "bg-primary/5"
+                                  : count === 1
+                                  ? "bg-primary/30"
+                                  : count === 2
+                                  ? "bg-primary/50"
+                                  : count === 3
+                                  ? "bg-primary/70"
+                                  : "bg-primary"
+                                : isIndividualCompleted
+                                ? "bg-primary"
+                                : "bg-primary/10"
+                            }`}
+                            title={`${date}: ${count} completions`}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    <div className="text-center mt-auto">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">
+                        {currentHabitIndex === -1
+                          ? `${currentMonthDays.reduce(
+                              (acc, d) => acc + getDailyHabitCount(d),
+                              0
+                            )} Total Completions`
+                          : `${
+                              habits[currentHabitIndex].completedDates.filter(
+                                (d) => currentMonthDays.includes(d)
+                              ).length
+                            } Days Mastered`}
+                      </span>
+                    </div>
+                  </motion.div>
                 </AnimatePresence>
               </motion.div>
             )}

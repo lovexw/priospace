@@ -14,8 +14,15 @@ import {
   Check,
   Share,
   Wifi,
+  Trash2,
+  Edit2,
+  Save,
+  Tag,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export function SettingsModal({
   onClose,
@@ -25,8 +32,25 @@ export function SettingsModal({
   onImportData,
   theme,
   onThemeChange,
-  onOpenWebRTCShare, // New prop for opening WebRTC share
+  onOpenWebRTCShare,
+  customTags,
+  onUpdateCustomTag,
+  onDeleteCustomTag,
+  onResetApp,
 }) {
+  const [editingTagId, setEditingTagId] = useState(null);
+  const [editName, setEditName] = useState("");
+
+  const startEditing = (tag) => {
+    setEditingTagId(tag.id);
+    setEditName(tag.name);
+  };
+
+  const saveTag = (id) => {
+    onUpdateCustomTag(id, { name: editName });
+    setEditingTagId(null);
+  };
+
   const themes = [
     {
       id: "default",
@@ -409,6 +433,95 @@ export function SettingsModal({
               </div>
             </motion.div>
 
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col gap-3 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80"
+            >
+              <div className="flex items-center gap-3">
+                <Tag className="h-5 w-5 text-primary" />
+                <div>
+                  <div className="font-extrabold text-gray-900 dark:text-gray-100">
+                    Manage Categories
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                    Edit or delete your categories
+                  </div>
+                </div>
+              </div>
+
+              <div className="max-h-60 overflow-y-auto hide-scroll flex flex-col gap-1">
+                {customTags.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic p-4 text-center">
+                    No categories created yet.
+                  </p>
+                ) : (
+                  customTags.map((tag) => (
+                    <div
+                      key={tag.id}
+                      className="flex items-center justify-between p-3 rounded-xl border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900"
+                    >
+                      <div className="flex items-center gap-3 flex-1">
+                        <input
+                          type="color"
+                          value={tag.color}
+                          onChange={(e) =>
+                            onUpdateCustomTag(tag.id, { color: e.target.value })
+                          }
+                          className="w-6 h-6 min-w-6 min-h-6 rounded-md cursor-pointer bg-transparent border-0"
+                        />
+                        {editingTagId === tag.id ? (
+                          <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="h-8 py-0 mr-3 font-bold"
+                            autoFocus
+                          />
+                        ) : (
+                          <span className="font-bold text-gray-700 dark:text-gray-200">
+                            {tag.name.length > 10
+                              ? tag.name.slice(0, 10) + "..."
+                              : tag.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        {editingTagId === tag.id ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => saveTag(tag.id)}
+                            className="text-green-500 h-8 w-8 p-0"
+                          >
+                            <Save className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEditing(tag)}
+                            className="text-gray-400 h-8 w-8 p-0"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            onDeleteCustomTag(tag.id);
+                          }}
+                          className="text-red-400 hover:text-red-500 h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+
             {/* WebRTC Share */}
             <motion.div variants={itemVariants}>
               <div className="flex items-center justify-between p-4 rounded-xl border-2 border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-800/20">
@@ -441,7 +554,7 @@ export function SettingsModal({
             <motion.div variants={itemVariants}>
               <div className="flex items-center justify-between p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80">
                 <div className="flex items-center gap-3">
-                  <Download className="h-5 w-5 text-primary" />
+                  <Upload className="h-5 w-5 text-primary" />
                   <div>
                     <div className="font-extrabold text-gray-900 dark:text-gray-100">
                       Export Data
@@ -461,7 +574,7 @@ export function SettingsModal({
                     size="sm"
                     className="border-2 border-gray-300 dark:border-gray-600 hover:border-primary/70 dark:hover:border-primary/80 rounded-xl font-extrabold w-12 h-12 p-0"
                   >
-                    <Download className="h-4 w-4" />
+                    <Upload className="h-4 w-4" />
                   </Button>
                 </motion.div>
               </div>
@@ -471,7 +584,7 @@ export function SettingsModal({
             <motion.div variants={itemVariants}>
               <div className="flex items-center justify-between p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80">
                 <div className="flex items-center gap-3">
-                  <Upload className="h-5 w-5 text-primary" />
+                  <Download className="h-5 w-5 text-primary" />
                   <div>
                     <div className="font-extrabold text-gray-900 dark:text-gray-100">
                       Import Data
@@ -491,7 +604,7 @@ export function SettingsModal({
                     size="sm"
                     className="border-2 border-gray-300 dark:border-gray-600 hover:border-primary/70 dark:hover:border-primary/80 rounded-xl font-extrabold w-12 h-12 p-0"
                   >
-                    <Upload className="h-4 w-4" />
+                    <Download className="h-4 w-4" />
                   </Button>
                 </motion.div>
               </div>
@@ -559,6 +672,35 @@ export function SettingsModal({
                 </div>
               </div>
             </motion.div>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <div className="flex items-center justify-between p-4 mt-7 rounded-xl border-2 border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+                <div>
+                  <div className="font-extrabold text-red-600 dark:text-red-400">
+                    Reset Prio Space
+                  </div>
+                  <div className="text-sm text-red-500/70 dark:text-red-400/60 font-medium">
+                    Permanently delete all data
+                  </div>
+                </div>
+              </div>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  onClick={onResetApp}
+                  variant="destructive"
+                  size="sm"
+                  className="rounded-xl font-extrabold px-4"
+                >
+                  Reset
+                </Button>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </motion.div>

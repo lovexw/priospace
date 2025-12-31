@@ -1,7 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Star, Play, Github, Coffee, Grid2X2 } from "lucide-react";
+import {
+  Star,
+  Play,
+  Github,
+  Coffee,
+  Grid2X2,
+  Smartphone,
+  LaptopMinimal,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -96,17 +104,6 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="font-heading text-3xl font-extrabold flex flex-col items-center gap-4"
             >
-              <a
-                href="https://peerlist.io/anoyroyc/project/priospace"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <img
-                  src="https://peerlist.io/api/v1/projects/embed/PRJHOK87KBKJLPKKPHPQ7LADJQK697?showUpvote=false&theme=light"
-                  alt="PrioSpace"
-                  style={{ width: "auto", height: "72px" }}
-                />
-              </a>
               Prio Space
             </motion.h1>
 
@@ -151,7 +148,7 @@ export default function LandingPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                   Mac
+                  <LaptopMinimal className="h-4 w-4" /> Mac
                 </motion.button>
               </Button>
             </motion.div>
@@ -172,7 +169,7 @@ export default function LandingPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                   ios
+                  <Smartphone className="h-4 w-4" /> ios
                 </motion.button>
               </Button>
 

@@ -711,32 +711,38 @@ export default function Home() {
   };
 
   const updateTask = (taskId, updates) => {
-    const dateString = getDateString(selectedDate);
-    const currentTasks = getCurrentDayTasks();
+    setDailyTasks((prev) => {
+      const newDailyTasks = { ...prev };
+      let taskToMove = null;
+      let oldDateKey = null;
 
-    // Check if it's a habit task
-    if (taskId.startsWith("habit-")) {
-      const habitId = taskId.split("-")[1];
-      const habit = habits.find((h) => h.id === habitId);
-      if (habit && updates.title) {
-        // Update habit name
-        const updatedHabits = habits.map((h) =>
-          h.id === habitId ? { ...h, name: updates.title } : h
+      Object.keys(newDailyTasks).forEach((dateKey) => {
+        const taskIndex = newDailyTasks[dateKey].findIndex(
+          (t) => t.id === taskId
         );
-        setHabits(updatedHabits);
+        if (taskIndex !== -1) {
+          oldDateKey = dateKey;
+          taskToMove = { ...newDailyTasks[dateKey][taskIndex], ...updates };
+
+          newDailyTasks[dateKey].splice(taskIndex, 1);
+
+          if (newDailyTasks[dateKey].length === 0) {
+            delete newDailyTasks[dateKey];
+          }
+        }
+      });
+
+      if (taskToMove) {
+        const newDateKey = getDateString(new Date(taskToMove.createdAt));
+
+        newDailyTasks[newDateKey] = [
+          ...(newDailyTasks[newDateKey] || []),
+          taskToMove,
+        ];
       }
-      if (habit && updates.tag !== undefined) {
-        // Update habit tag
-        const updatedHabits = habits.map((h) =>
-          h.id === habitId ? { ...h, tag: updates.tag } : h
-        );
-        setHabits(updatedHabits);
-      }
-    } else {
-      // Regular task/subtask update
-      const updatedTasks = updateTaskInList(taskId, updates, currentTasks);
-      setDailyTasks({ ...dailyTasks, [dateString]: updatedTasks });
-    }
+
+      return newDailyTasks;
+    });
   };
 
   const deleteTask = (id) => {
@@ -935,7 +941,48 @@ export default function Home() {
     input.click();
   };
 
-  // Create flattened task list for components that need all tasks
+  const updateCustomTag = (tagId, updates) => {
+    setCustomTags((prev) =>
+      prev.map((tag) => (tag.id === tagId ? { ...tag, ...updates } : tag))
+    );
+  };
+
+  const deleteCustomTag = (tagId) => {
+    setCustomTags((prev) => prev.filter((tag) => tag.id !== tagId));
+
+    const updatedDailyTasks = { ...dailyTasks };
+    Object.keys(updatedDailyTasks).forEach((dateKey) => {
+      updatedDailyTasks[dateKey] = updatedDailyTasks[dateKey].map((task) => {
+        const updatedTask = { ...task };
+        if (updatedTask.tag === tagId) updatedTask.tag = undefined;
+
+        if (updatedTask.subtasks) {
+          updatedTask.subtasks = updatedTask.subtasks.map((st) =>
+            st.tag === tagId ? { ...st, tag: undefined } : st
+          );
+        }
+        return updatedTask;
+      });
+    });
+    setDailyTasks(updatedDailyTasks);
+
+    setHabits((prev) =>
+      prev.map((habit) =>
+        habit.tag === tagId ? { ...habit, tag: undefined } : habit
+      )
+    );
+  };
+
+  const resetApp = () => {
+    localStorage.clear();
+    setDailyTasks({});
+    setCustomTags([]);
+    setHabits([]);
+    setDarkMode(false);
+    setTheme("default");
+    window.location.reload();
+  };
+
   const createFlatTaskList = (tasks) => {
     const flatList = [];
     tasks.forEach((task) => {
@@ -1206,7 +1253,11 @@ export default function Home() {
                 onThemeChange={setTheme}
                 onExportData={exportData}
                 onImportData={importData}
+                customTags={customTags}
+                onUpdateCustomTag={updateCustomTag}
+                onDeleteCustomTag={deleteCustomTag}
                 onOpenWebRTCShare={() => setShowWebRTCShare(true)}
+                onResetApp={resetApp}
               />
             )}
 

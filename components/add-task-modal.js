@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Tag, Check, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,7 @@ export function AddTaskModal({
   const [showAddTag, setShowAddTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
+  const modalRef = useRef(null);
 
   // Update taskDate when selectedDate changes
   useEffect(() => {
@@ -159,30 +160,25 @@ export function AddTaskModal({
     hidden: {
       y: "100%",
       opacity: 0,
-      scale: 0.95,
     },
     visible: {
       y: 0,
       opacity: 1,
-      scale: 1,
       transition: {
         type: "spring",
         damping: 25,
         stiffness: 300,
-        duration: 0.4,
       },
     },
     exit: {
       y: "100%",
       opacity: 0,
-      scale: 0.95,
       transition: {
-        duration: 0.2,
-        ease: "easeIn",
+        duration: 0.3,
+        ease: "easeInOut",
       },
     },
   };
-
   const contentVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -255,13 +251,33 @@ export function AddTaskModal({
       initial="hidden"
       animate="visible"
       exit="exit"
+      drag="y"
+      dragDirectionLock
+      dragConstraints={{ top: 0, bottom: 0 }}
+      dragElastic={{ top: 0, bottom: 1 }}
+      onDragEnd={(_, info) => {
+        if (info.offset.y > 100) {
+          onClose();
+        }
+      }}
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <motion.div
+        ref={modalRef}
         variants={modalVariants}
         className="bg-white dark:bg-gray-900 rounded-t-3xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border-t border-gray-200 dark:border-gray-700"
         onClick={(e) => e.stopPropagation()}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.5 }}
+        onDragEnd={(_, info) => {
+          const modalHeight = modalRef.current?.offsetHeight || 0;
+
+          if (info.offset.y > modalHeight / 2.5) {
+            onClose();
+          }
+        }}
       >
         {/* Drag Handle */}
         <motion.div
