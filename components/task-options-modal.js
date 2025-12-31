@@ -456,39 +456,41 @@ export function TaskOptionsModal({
               </motion.div>
             )}
 
-            <motion.div variants={itemVariants} className="space-y-3">
-              <label className="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Reschedule
-              </label>
+            {!isSubtask && !task.isHabit && (
+              <motion.div variants={itemVariants} className="space-y-3">
+                <label className="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Reschedule
+                </label>
 
-              <div className="flex gap-2 flex-wrap">
-                {getQuickDateOptions().map((option) => (
-                  <motion.button
-                    key={option.label}
-                    onClick={() => handleDateChange(option.date)}
-                    className={`px-3 py-2 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${
-                      taskDate.toDateString() === option.date.toDateString()
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-gray-300 dark:border-gray-600 dark:text-gray-100"
-                    }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {option.label}
-                  </motion.button>
-                ))}
-              </div>
+                <div className="flex gap-2 flex-wrap">
+                  {getQuickDateOptions().map((option) => (
+                    <motion.button
+                      key={option.label}
+                      onClick={() => handleDateChange(option.date)}
+                      className={`px-3 py-2 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${
+                        taskDate.toDateString() === option.date.toDateString()
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-gray-300 dark:border-gray-600 dark:text-gray-100"
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {option.label}
+                    </motion.button>
+                  ))}
+                </div>
 
-              <input
-                type="date"
-                value={formatDateForInput(taskDate)}
-                onChange={(e) =>
-                  handleDateChange(parseDateFromInput(e.target.value))
-                }
-                className="w-full border-2 border-gray-300 focus:border-primary/70 font-extrabold dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl py-3 px-4"
-              />
-            </motion.div>
+                <input
+                  type="date"
+                  value={formatDateForInput(taskDate)}
+                  onChange={(e) =>
+                    handleDateChange(parseDateFromInput(e.target.value))
+                  }
+                  className="w-full border-2 border-gray-300 focus:border-primary/70 font-extrabold dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl py-3 px-4"
+                />
+              </motion.div>
+            )}
 
             {/* Subtasks Section - Only show for main tasks */}
             {!isSubtask && !task.isHabit && (
