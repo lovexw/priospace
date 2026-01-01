@@ -39,8 +39,8 @@ export function AddSubtaskModal({
   const [newTagName, setNewTagName] = useState("");
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
   const inputRef = useRef(null);
+  const modalRef = useRef(null);
 
-  // Arrow key navigation for categories (same as AddTaskModal)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
@@ -55,27 +55,20 @@ export function AddSubtaskModal({
 
         if (e.key === "ArrowDown") {
           if (currentIndex === -1) {
-            // No selection, select first tag
             newIndex = 0;
           } else if (currentIndex === customTags.length - 1) {
-            // At last tag, clear selection
             setSelectedTag("");
             return;
           } else {
-            // Go to next tag
             newIndex = currentIndex + 1;
           }
         } else {
-          // ArrowUp
           if (currentIndex === -1) {
-            // No selection, select last tag
             newIndex = customTags.length - 1;
           } else if (currentIndex === 0) {
-            // At first tag, clear selection
             setSelectedTag("");
             return;
           } else {
-            // Go to previous tag
             newIndex = currentIndex - 1;
           }
         }
@@ -110,25 +103,14 @@ export function AddSubtaskModal({
     }
   };
 
-  // Animation variants (same as AddTaskModal)
   const backdropVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.2 },
-    },
-    exit: {
-      opacity: 0,
-      transition: { duration: 0.15 },
-    },
+    visible: { opacity: 1, transition: { duration: 0.2 } },
+    exit: { opacity: 0, transition: { duration: 0.15 } },
   };
 
   const modalVariants = {
-    hidden: {
-      y: "100%",
-      opacity: 0,
-      scale: 0.95,
-    },
+    hidden: { y: "100%", opacity: 0, scale: 0.95 },
     visible: {
       y: 0,
       opacity: 1,
@@ -144,10 +126,7 @@ export function AddSubtaskModal({
       y: "100%",
       opacity: 0,
       scale: 0.95,
-      transition: {
-        duration: 0.2,
-        ease: "easeIn",
-      },
+      transition: { duration: 0.2, ease: "easeIn" },
     },
   };
 
@@ -155,10 +134,7 @@ export function AddSubtaskModal({
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.15,
-      },
+      transition: { staggerChildren: 0.08, delayChildren: 0.15 },
     },
   };
 
@@ -172,11 +148,7 @@ export function AddSubtaskModal({
   };
 
   const tagFormVariants = {
-    hidden: {
-      opacity: 0,
-      y: -20,
-      scale: 0.95,
-    },
+    hidden: { opacity: 0, y: -20, scale: 0.95 },
     visible: {
       opacity: 1,
       y: 0,
@@ -192,10 +164,7 @@ export function AddSubtaskModal({
       opacity: 0,
       y: -20,
       scale: 0.95,
-      transition: {
-        duration: 0.2,
-        ease: "easeIn",
-      },
+      transition: { duration: 0.2, ease: "easeIn" },
     },
   };
 
@@ -204,16 +173,9 @@ export function AddSubtaskModal({
     visible: {
       scale: 1,
       opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 500,
-        damping: 30,
-      },
+      transition: { type: "spring", stiffness: 500, damping: 30 },
     },
-    hover: {
-      scale: 1.1,
-      transition: { duration: 0.1 },
-    },
+    hover: { scale: 1.1, transition: { duration: 0.1 } },
     tap: { scale: 0.95 },
   };
 
@@ -227,22 +189,30 @@ export function AddSubtaskModal({
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <motion.div
+        ref={modalRef}
         variants={modalVariants}
-        className="bg-white dark:bg-gray-900 rounded-t-3xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border-t border-gray-200 dark:border-gray-700"
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.5 }}
+        onDragEnd={(_, info) => {
+          const modalHeight = modalRef.current?.offsetHeight || 0;
+          if (info.offset.y > modalHeight / 2) {
+            onClose();
+          }
+        }}
+        className="bg-white dark:bg-gray-900 rounded-t-3xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border-t border-gray-200 dark:border-gray-700 relative touch-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag Handle */}
-        <motion.div
-          className="flex justify-center pt-4 pb-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
+        <div className="flex justify-center pt-4 pb-3 cursor-grab active:cursor-grabbing">
           <div
-            className="w-12 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full"
+            className="w-12 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full cursor-pointer"
             onClick={onClose}
           />
-        </motion.div>
+        </div>
 
         <div className="px-6 pb-6 overflow-y-auto max-h-[calc(90vh-70px)]">
           {/* Header */}
@@ -254,11 +224,7 @@ export function AddSubtaskModal({
               <motion.div
                 initial={{ rotate: -10, scale: 0.8 }}
                 animate={{ rotate: 0, scale: 1 }}
-                transition={{
-                  delay: 0.25,
-                  type: "spring",
-                  stiffness: 300,
-                }}
+                transition={{ delay: 0.25, type: "spring", stiffness: 300 }}
                 className="p-2.5 bg-primary/10 rounded-xl"
               >
                 <Plus className="h-5 w-5 text-primary" />
@@ -377,18 +343,7 @@ export function AddSubtaskModal({
                     <label className="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
                       Choose Color
                     </label>
-                    <motion.div
-                      className="flex gap-3 flex-wrap justify-center"
-                      initial="hidden"
-                      animate="visible"
-                      variants={{
-                        visible: {
-                          transition: {
-                            staggerChildren: 0.04,
-                          },
-                        },
-                      }}
-                    >
+                    <motion.div className="flex gap-3 flex-wrap justify-center">
                       {PRESET_COLORS.map((color, index) => (
                         <motion.button
                           key={color}
@@ -402,7 +357,6 @@ export function AddSubtaskModal({
                               : "border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-400"
                           }`}
                           style={{ backgroundColor: color }}
-                          custom={index}
                         >
                           {selectedColor === color && (
                             <motion.div
@@ -419,18 +373,13 @@ export function AddSubtaskModal({
                   </motion.div>
 
                   <motion.div variants={itemVariants}>
-                    <motion.div
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
+                    <Button
+                      onClick={handleAddTag}
+                      className="w-full rounded-xl font-extrabold py-3"
+                      disabled={!newTagName.trim()}
                     >
-                      <Button
-                        onClick={handleAddTag}
-                        className="w-full rounded-xl font-extrabold py-3"
-                        disabled={!newTagName.trim()}
-                      >
-                        Create Category
-                      </Button>
-                    </motion.div>
+                      Create Category
+                    </Button>
                   </motion.div>
                 </motion.div>
               )}

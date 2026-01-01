@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -61,6 +61,7 @@ export function TaskOptionsModal({
   const [taskDate, setTaskDate] = useState(task.createdAt || new Date());
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
   const [showSubtasks, setShowSubtasks] = useState(false);
+  const modalRef = useRef(null);
 
   // Get subtasks for this task
   const subtasks = task.subtasks || [];
@@ -189,14 +190,12 @@ export function TaskOptionsModal({
     exit: {
       y: "100%",
       opacity: 0,
-      scale: 0.95,
       transition: {
-        duration: 0.2,
-        ease: "easeIn",
+        duration: 0.3,
+        ease: "easeInOut",
       },
     },
   };
-
   const contentVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -325,22 +324,30 @@ export function TaskOptionsModal({
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <motion.div
+        ref={modalRef}
         variants={modalVariants}
-        className="bg-white dark:bg-gray-900 rounded-t-3xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border-t border-gray-200 dark:border-gray-700"
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.5 }}
+        onDragEnd={(_, info) => {
+          const modalHeight = modalRef.current?.offsetHeight || 0;
+          if (info.offset.y > modalHeight / 2.5) {
+            onClose();
+          }
+        }}
+        className="bg-white dark:bg-gray-900 rounded-t-3xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border-t border-gray-200 dark:border-gray-700 relative touch-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag Handle */}
-        <motion.div
-          className="flex justify-center pt-4 pb-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
+        <div className="flex justify-center pt-4 pb-3 cursor-grab active:cursor-grabbing">
           <div
-            className="w-12 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full"
+            className="w-12 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full cursor-pointer"
             onClick={onClose}
           />
-        </motion.div>
+        </div>
 
         <div className="px-6 pb-6 overflow-y-auto max-h-[calc(90vh-70px)]">
           {/* Header */}

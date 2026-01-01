@@ -280,17 +280,12 @@ export function AddTaskModal({
         }}
       >
         {/* Drag Handle */}
-        <motion.div
-          className="flex justify-center pt-4 pb-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
+        <div className="flex justify-center pt-4 pb-3 cursor-grab active:cursor-grabbing">
           <div
             className="w-12 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full cursor-pointer"
             onClick={onClose}
           />
-        </motion.div>
+        </div>
 
         <div className="px-6 pb-6 overflow-y-auto max-h-[calc(90vh-70px)]">
           {/* Header */}

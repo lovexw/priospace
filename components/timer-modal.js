@@ -52,6 +52,7 @@ export function TimerModal({
   const gainNodesRef = useRef({});
   const isInitializedRef = useRef(false);
   const completeAudioRef = useRef(null);
+  const modalRef = useRef(null);
 
   if (typeof window !== "undefined") {
     if (!completeAudioRef.current) {
@@ -538,10 +539,9 @@ export function TimerModal({
     exit: {
       y: "100%",
       opacity: 0,
-      scale: 0.95,
       transition: {
-        duration: 0.2,
-        ease: "easeIn",
+        duration: 0.3,
+        ease: "easeInOut",
       },
     },
   };
@@ -576,13 +576,26 @@ export function TimerModal({
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
       <motion.div
+        ref={modalRef}
         variants={modalVariants}
-        className="bg-white dark:bg-gray-900 rounded-t-3xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border-t border-gray-200 dark:border-gray-700"
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.5 }}
+        onDragEnd={(_, info) => {
+          const modalHeight = modalRef.current?.offsetHeight || 0;
+          if (info.offset.y > modalHeight / 2.5) {
+            handleClose(); // Use handleClose to ensure audio stops
+          }
+        }}
+        className="bg-white dark:bg-gray-900 rounded-t-3xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border-t border-gray-200 dark:border-gray-700 relative touch-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag Handle */}
         <motion.div
-          className="flex justify-center pt-4 pb-3"
+          className="flex justify-center pt-4 pb-3 cursor-grab active:cursor-grabbing"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
