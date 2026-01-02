@@ -199,6 +199,11 @@ export function HabitTracker({
     0
   );
 
+  const fullTotalCompletions = habits.reduce(
+    (acc, habit) => acc + (habit.completedDates?.length || 0),
+    0
+  );
+
   // Animation variants
   const backdropVariants = {
     hidden: { opacity: 0 },
@@ -625,8 +630,8 @@ export function HabitTracker({
                           </h3>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">
-                          {totalCompletions} total completions • {habits.length}{" "}
-                          habits
+                          {fullTotalCompletions} total completions •{" "}
+                          {habits.length} habits
                         </p>
                       </>
                     ) : (
