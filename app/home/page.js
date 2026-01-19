@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -65,8 +66,8 @@ export default function LandingPage() {
 
   const handleDownloadMac = () => {
     window.open(
-      "https://apps.apple.com/us/app/prio-space/id6752712865",
-      "_blank"
+      "https://apps.apple.com/us/app/prio-space/id6752712865?platform=mac",
+      "_blank",
     );
   };
 
@@ -76,15 +77,22 @@ export default function LandingPage() {
 
   const handleDownloadWindows = () => {
     window.open(
-      "https://github.com/AnoyRC/priospace/releases/download/0.1.3/priospace_0.1.3_x64-setup.exe",
-      "_blank"
+      "https://github.com/AnoyRC/priospace/releases/download/0.1.4/priospace_0.1.4_x64-setup.exe",
+      "_blank",
     );
   };
 
   const handleDownloadiOS = () => {
     window.open(
       "https://apps.apple.com/us/app/prio-space/id6752712865?platform=iphone",
-      "_blank"
+      "_blank",
+    );
+  };
+
+  const handleDownloadAndroid = () => {
+    window.open(
+      "https://github.com/AnoyRC/priospace/releases/download/0.1.4/priospace-android-release.apk",
+      "_blank",
     );
   };
 
@@ -123,7 +131,7 @@ export default function LandingPage() {
               <Button
                 size="lg"
                 onClick={handleStartWebApp}
-                className="gap-2 p-6 w-36 py-7 rounded-full text-xl font-extrabold"
+                className="gap-2 p-6 w-40 py-7 rounded-full text-xl font-extrabold"
                 asChild
               >
                 <motion.button
@@ -140,7 +148,7 @@ export default function LandingPage() {
                 variant="outline"
                 size="lg"
                 onClick={handleDownloadMac}
-                className="gap-2 p-6 w-36 py-7 rounded-full text-xl font-extrabold"
+                className="gap-2 p-6 w-40 py-7 rounded-full text-xl font-extrabold"
                 asChild
               >
                 <motion.button
@@ -161,7 +169,7 @@ export default function LandingPage() {
                 variant="outline"
                 size="lg"
                 onClick={handleDownloadiOS}
-                className="gap-2 p-6 w-36 py-7 rounded-full text-xl font-extrabold"
+                className="gap-2 p-6 w-40 py-7 rounded-full text-xl font-extrabold"
                 asChild
               >
                 <motion.button
@@ -177,7 +185,7 @@ export default function LandingPage() {
                 variant="outline"
                 size="lg"
                 onClick={handleDownloadWindows}
-                className="gap-1 p-6 w-36 py-7 rounded-full text-lg font-extrabold"
+                className="gap-1 p-6 w-40 py-7 rounded-full text-lg font-extrabold"
                 asChild
               >
                 <motion.button
@@ -198,8 +206,30 @@ export default function LandingPage() {
               <Button
                 variant="outline"
                 size="lg"
+                onClick={handleDownloadAndroid}
+                className="gap-1 p-6 w-40 py-7 rounded-full text-lg font-extrabold"
+                asChild
+              >
+                <motion.button
+                  variants={fadeInUp}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Image
+                    src="/external/android.svg"
+                    alt="Android"
+                    height={20}
+                    width={20}
+                    className="opacity-80"
+                  />
+                  Android
+                </motion.button>
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
                 onClick={handleStarGitHub}
-                className="gap-2 p-6 w-48 py-7 rounded-full text-xl font-extrabold"
+                className="gap-2 p-6 w-40 py-7 rounded-full text-xl font-extrabold"
                 asChild
               >
                 <motion.button
